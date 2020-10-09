@@ -15,9 +15,9 @@
 <div id = "board"></div>
 <script>
     let pattern = [
-        [0, 0, 2],
-        [0, 1, 0],
-        [0, 0, 0]
+        0, 0, 0,
+        0, 0, 0,
+        0, 0, 0
     ]
 
     let color = 1;
@@ -30,26 +30,36 @@
                 let cell = document.createElement("div");
                 cell.classList.add("cell");
                 cell.innerText = 
-                    pattern[i][j] == 2 ? "×" : 
-                    pattern[i][j] == 1 ? "o" : "";
-                cell.addEventListener("click", () => move(j, i));
+                    pattern[i * 3 + j] == 2 ? "×" : 
+                    pattern[i * 3 + j] == 1 ? "o" : "";
+                cell.addEventListener("click", () => userMove(j, i));
                 board.appendChild(cell);
             }
+            board.appendChild(document.createElement("br"))
         }
-        board.appendChild(document.createElement("br"))
     }
 
-    function move(x, y) {
-        pattern[y][x] = color;
-        if (check(pattern, color)) {
+    function userMove(x, y) {
+        pattern[y * 3 + x] = color;
+        if(check(pattern,color)) {
+            alert(color == 2 ? "× is winner!" : "o is winner!");
+        }
+        color = 3 -color;
+        show();
+        computerMove()
+    }
+
+    function computerMove(x, y) {
+        let choice = bestChoice(pattern, color);
+        if (choice.point)
+            pattern[choice.point[1] * 3 + choice.point[0]] = color;
+        if(check(pattern, color)) {
             alert(color == 2 ? "× is winner!" : "o is winner!");
         }
         color = 3 - color;
         show();
-        if (willWin(pattern, color)) {
-            console.log(color == 2 ? "× will winner!" : "o will winner!")
-        }
     }
+    
 
     // 检查哪方赢
     function check(pattern, color){
@@ -57,7 +67,7 @@
         for (let i = 0; i < 3; i ++) {
             let win = true;
             for(let j = 0; j < 3; j ++) {
-                if (pattern[i][j] != color) {
+                if (pattern[i * 3 + j] != color) {
                     win = false;
                 }
             }
@@ -69,7 +79,7 @@
         for (let i = 0; i < 3; i ++) {
             let win = true;
             for(let j = 0; j < 3; j++) {
-                if (pattern[j][i] != color) {
+                if (pattern[j * 3 + i] != color) {
                     win = false;
                 }
             }
@@ -80,7 +90,7 @@
         {
             let win = true;
             for (let j = 0; j < 3; j ++) {
-                if (pattern[j][2 -j] != color) {
+                if (pattern[j * 3 + 2 -j] != color) {
                     win = false;
                 }
             }
@@ -91,7 +101,7 @@
         {
             let win = true;
             for (let j = 0; j < 3; j ++) {
-                if (pattern[j][j] != color) {
+                if (pattern[j * 3 + j] != color) {
                     win = false;
                 }
             }
@@ -108,10 +118,10 @@
     function willWin(pattern, color) {
         for (let i = 0; i < 3; i ++) {
             for (let j = 0; j < 3; j ++) {
-                if (pattern[i][j]) 
+                if (pattern[i * 3 + j]) 
                     continue;
                 let tmp = clone(pattern);
-                tmp[i][j] = color;
+                tmp[i * 3 + j] = color;
                 if (check(tmp, color)) {
                     return [j, i];
                 }
@@ -131,17 +141,19 @@
         }
         let result = -2;
         let point = null;
-        for (let i = 0; i < 3; i ++) {
+        outer: for (let i = 0; i < 3; i ++) {
             for (let j = 0; j < 3; j ++) {
-                if (pattern[i][j])
+                if (pattern[i * 3 + j])
                     continue;
                 let tmp = clone(pattern);
-                tmp[i][j] = color;
+                tmp[i * 3 + j] = color;
                 let r = bestChoice(tmp, 3 - color).result;
                 if (- r > result) {
                     result = - r;
                     point = [j, i];
                 }
+                if(result == 1)
+                    break outer;
             }
         }
         return {
