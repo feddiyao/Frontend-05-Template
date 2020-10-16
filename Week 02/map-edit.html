@@ -15,9 +15,7 @@
         width: 701px;
     }
 </style>
-<div id="container">
-
-</div>
+<div id="container"></div>
 <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
 
 <script>
@@ -32,7 +30,7 @@
             if(map[100*y + x] == 1)
                 cell.style.backgroundColor = "black";
 
-            //按住的时候移动
+            //按住的时候移动会进行画图
             cell.addEventListener("mousemove", () => {
                 if(mousedown) {
                     if(clear) {
@@ -51,16 +49,65 @@
     let mousedown = false;
     let clear = false;
 
-    //判断是否在按右键
+    //是否是按下事件    
     document.addEventListener("mousedown", e => {
         mousedown = true;
+
+        //判断按下时是否在按右键
         clear = (e.which === 3)
     });
     document.addEventListener("mouseup", () => mousedown = false);
-    //默认右键弹出菜单事件禁止掉
+
+    //将默认的右键弹出菜单事件禁止掉
     document.addEventListener("contextmenu", e => e.preventDefault());
 
-    function path(map, start, end) {
+    function sleep(t) {
+        return new Promise(function(resolve) {
+            setTimeout(resolve, t);
+        });
+    }
 
+    async function findPath(map, start, end) {
+        let table = Object.create(map)
+        //所有搜索算法差异的灵魂queue
+        var queue = [start]
+
+        async function insert(x, y, pre) {
+
+            if (x < 0 || x >= 100 || y < 0 || y >= 100) 
+                return;
+            if (map[y * 100 + x])
+                return;
+            await sleep(1);
+            container.children[y * 100 + x].style.backgroundColor = "lightgreen";
+            map[y * 100 + x] = pre;
+            queue.push([x, y])
+        }
+
+        while(queue.length){
+            let [x, y] = queue.shift();
+            console.log(x, y);
+            if (x === end[0] && y === end[1]) {
+                let path = [];
+
+                while(x != start[0] || y != start[1]) {
+                    path.push(table[y * 100 + x]);
+                    [x, y] = table[y * 100 + x];
+                    await sleep(30);
+                    container.children[y * 100 + x].style.backgroundColor = "purple";
+                }
+                return path
+            }
+            await insert(x - 1, y, [x, y]);
+            await insert(x, y - 1, [x, y]);
+            await insert(x + 1, y, [x, y]);
+            await insert(x, y + 1, [x, y]);
+
+            // await insert(x - 1, y - 1, [x, y]);
+            // await insert(x + 1, y - 1, [x, y]);
+            // await insert(x + 1, y + 1, [x, y]);
+            // await insert(x - 1, y + 1, [x, y]);
+        }
+        return null;
     }
 </script>
