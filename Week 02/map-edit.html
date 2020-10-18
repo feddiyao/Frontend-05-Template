@@ -19,6 +19,37 @@
 <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
 
 <script>
+    class Sorted {
+        constructor(data, compare) {
+            this.data = data.slice();
+            this.compare = compare || ((a, b) => a - b);
+        }
+        //每次take的时候拿出来的一定是最小的
+        take() {
+            if (!this.data.length)
+                return;
+            let min = this.data[0];
+            let minIndex = 0;
+
+            for(let i = 1; i < this.data.length; i++) {
+                if(this.compare(this.data[i], min) < 0) {
+                    min = this.data[i];
+                    minIndex = i;
+                }
+            }
+
+            //slice的删除会把剩下的元素往前挪，那么时间复杂度则为o(n) 这不是我们想要见到的
+            //这里的做法是把当前元素和最后一个元素交换，再进行一次pop操作
+            this.data[minIndex] = this.data[this.data.length - 1];
+            this.data.pop();
+            return min
+        }
+
+        give(v) {
+            this.data.push(v);
+        }
+    }
+
     let map = localStorage["map"] ? JSON.parse(localStorage["map"]) : Array(10000).fill(0);
 
     let container = document.getElementById("container");
@@ -70,7 +101,7 @@
     async function findPath(map, start, end) {
         let table = Object.create(map)
         //所有搜索算法差异的灵魂queue
-        var queue = [start]
+        var queue = new Sorted([start], (a, b) => distance(a) - distance(b))
 
         async function insert(x, y, pre) {
 
@@ -81,11 +112,15 @@
             await sleep(1);
             container.children[y * 100 + x].style.backgroundColor = "lightgreen";
             map[y * 100 + x] = pre;
-            queue.push([x, y])
+            queue.data.push([x, y])
         }
 
-        while(queue.length){
-            let [x, y] = queue.shift();
+        function distance(point) {
+            return(point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2;
+        }
+
+        while(queue.data.length){
+            let [x, y] = queue.data.shift();
             console.log(x, y);
             if (x === end[0] && y === end[1]) {
                 let path = [];
