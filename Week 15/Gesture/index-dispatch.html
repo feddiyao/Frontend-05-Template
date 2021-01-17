@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title></title>
+	</head>
+	<script src="./gesture5.js"></script>
+	<body oncontextmenu="event.preventDefault()"></body>
+	<script>
+		//测试事件派发 是否生效
+		document.documentElement.addEventListener("tap", () => {
+			console.log("tap event triggered");
+		});
+	</script>
+</html>
